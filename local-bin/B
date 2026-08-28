@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+THEMES_DIR="$HOME/.config/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+
+# Get current theme
+CURRENT=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "tokyo-night")
+
+# Show picker and get choice
+CHOICE=$(echo -e "Tokyo Night\nGruvbox\nEverforest\nCatppuccin\nNordic\nRose Pine" | \
+    rofi -dmenu -i -p "󰉼  Select Theme" -theme ~/.config/rofi/theme-selector.rasi -no-custom)
+
+# Exit if nothing selected
+[ -z "$CHOICE" ] && exit 0
+
+# Determine selected theme
+case "$CHOICE" in
+    *"Tokyo Night"*) THEME="tokyo-night" ;;
+    *"Gruvbox"*)     THEME="gruvbox" ;;
+    *"Everforest"*)  THEME="everforest" ;;
+    *"Catppuccin"*)  THEME="catppuccin" ;;
+    *"Nordic"*)      THEME="nordic" ;;
+    *"Rose Pine"*)   THEME="rose-pine" ;;
+    *)               exit 1 ;;
+esac
+
+# Check if already on this theme
+[ "$THEME" = "$CURRENT" ] && exit 0
+
+(
+    # Log for debugging
+    exec &> /tmp/theme-switcher.log
+
+    # --- Wallpaper ---
+    WALLPAPER_PATH=$(eval echo "$(cat "$THEMES_DIR/$THEME/wallpaper-path.txt" 2>/dev/null)")
+    if [ -d "$WALLPAPER_PATH" ]; then
+        WALL=$(find "$WALLPAPER_PATH" -type f \( -iname "*.jpg" -o -iname "*.png" \) 2>/dev/null | shuf -n 1)
+        if [ -n "$WALL" ]; then
+            if ! swww query &>/dev/null; then
+                swww-daemon &
+                sleep 0.2
+                swww img "$WALL" --transition-type none
+            else
+                swww img "$WALL" --transition-type fade --transition-duration 1.2 &
+            fi
+            echo "$WALL" > "$HOME/.cache/current_wallpaper"
+        fi
+    fi
+
+    sleep 0.1
+
+    # --- Waybar ---
+    cp "$THEMES_DIR/$THEME/waybar-config" "$HOME/.config/waybar/config"
+    cp "$THEMES_DIR/$THEME/waybar-style.css" "$HOME/.config/waybar/style.css"
+    killall waybar 2>/dev/null; sleep 0.1; waybar &
+
+    # --- Hyprland ---
+    cp "$THEMES_DIR/$THEME/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
+    hyprctl reload
+
+     # --- Cursor (Universal for all themes) ---
+    hyprctl setcursor Bibata-Modern-Classic 24 2>/dev/null || true
+
+    # --- Alacritty ---
+    if [ -f "$THEMES_DIR/$THEME/alacritty.toml" ]; then
+        cat "$THEMES_DIR/$THEME/alacritty.toml" > "$HOME/.config/alacritty/alacritty.toml"
+        touch "$HOME/.config/alacritty/alacritty.toml"
+    fi
+
+    # --- Btop ---
+    echo "=== BTOP ==="
+    mkdir -p ~/.config/btop
+
+    case "$THEME" in
+        tokyo-night) BTOP_THEME="tokyo-night" ;;
+        gruvbox)     BTOP_THEME="gruvbox_dark" ;;
+        everforest)  BTOP_THEME="everforest-dark-hard" ;;
+        catppuccin)  BTOP_THEME="catppuccin-mocha" ;;
+        nordic)      BTOP_THEME="nordic" ;;
+        rose-pine)   BTOP_THEME="rose-pine" ;;
+        *)           BTOP_THEME="Default" ;;
+    esac
+
+    if [ -f ~/.config/btop/btop.conf ]; then
+        sed -i "s/color_theme = .*/color_theme = \"$BTOP_THEME\"/" ~/.config/btop/btop.conf
+    else
+        cat > ~/.config/btop/btop.conf << EOF
+color_theme = "$BTOP_THEME"
+theme_background = true
+EOF
+    fi
+    echo "Btop theme: $BTOP_THEME"
+
+    # --- Starship ---
+    [ -f "$THEMES_DIR/$THEME/starship.toml" ] && \
+        cp "$THEMES_DIR/$THEME/starship.toml" "$HOME/.config/starship.toml"
+
+    # --- Rofi (FIXED: Added nordic->nord mapping) ---
+    ROFI_COLORS_DIR="$HOME/.config/rofi/colors"
+    
+    if [ "$THEME" = "tokyo-night" ]; then
+        ROFI_FILE="tokyonight"
+    elif [ "$THEME" = "nordic" ]; then
+        ROFI_FILE="nord"  # FIX: nordic theme uses nord.rasi
+    elif [ "$THEME" = "rose-pine" ]; then
+        ROFI_FILE="dracula"
+    else
+        ROFI_FILE="$THEME"
+    fi
+
+    if [ -f "$ROFI_COLORS_DIR/$ROFI_FILE.rasi" ]; then
+        ln -sf "$ROFI_COLORS_DIR/$ROFI_FILE.rasi" "$ROFI_COLORS_DIR/current.rasi"
+        echo "Rofi theme: $ROFI_FILE"
+    else
+        echo "Rofi file not found: $ROFI_COLORS_DIR/$ROFI_FILE.rasi"
+    fi    
+
+    # --- Kvantum ---
+    KVANTUM_CONFIG="$HOME/.config/Kvantum/kvantum.kvconfig"
+    if [ "$THEME" = "gruvbox" ]; then
+        echo "theme=Gruvbox" > "$KVANTUM_CONFIG"
+    elif [ "$THEME" = "everforest" ]; then
+        echo "theme=MateriaEverforestDark" > "$KVANTUM_CONFIG"
+    elif [ "$THEME" = "catppuccin" ]; then
+        echo "theme=catppuccin-mocha-mauve" > "$KVANTUM_CONFIG"
+    elif [ "$THEME" = "nordic" ]; then
+        echo "theme=Nordic" > "$KVANTUM_CONFIG"
+    elif [ "$THEME" = "rose-pine" ]; then
+        echo "theme=rose-pine-iris" > "$KVANTUM_CONFIG"
+    else
+        echo "theme=Kvantum-Tokyo-Night" > "$KVANTUM_CONFIG"
+    fi
+
+    # --- Wlogout ---
+    rm -f "$HOME/.config/wlogout/config"
+    rm -f "$HOME/.config/wlogout/layout"
+    rm -f "$HOME/.config/wlogout/style.css"
+
+    if [ -f "$THEMES_DIR/$THEME/wlogout-layout" ]; then
+        cp "$THEMES_DIR/$THEME/wlogout-layout" "$HOME/.config/wlogout/layout"
+    fi
+
+    if [ -f "$THEMES_DIR/$THEME/wlogout-style.css" ]; then
+        cp "$THEMES_DIR/$THEME/wlogout-style.css" "$HOME/.config/wlogout/style.css"
+    fi
+
+    # --- VSCodium ---
+    if command -v codium &> /dev/null; then
+        VSCODIUM_SETTINGS="$HOME/.config/VSCodium/User/settings.json"
+
+        if [ -f "$VSCODIUM_SETTINGS" ]; then
+            if [ "$THEME" = "gruvbox" ]; then
+                VSC_THEME="Gruvbox Dark Hard"
+            elif [ "$THEME" = "everforest" ]; then
+                VSC_THEME="Everforest Dark"
+            elif [ "$THEME" = "catppuccin" ]; then
+                VSC_THEME="Catppuccin Mocha"
+            elif [ "$THEME" = "nordic" ]; then
+                VSC_THEME="Nord"
+            elif [ "$THEME" = "rose-pine" ]; then
+                VSC_THEME="Rosé Pine"
+            else
+                VSC_THEME="Tokyo Night"
+            fi
+
+            sed -i 's/"workbench.colorTheme": *"[^"]*"/"workbench.colorTheme": "'"$VSC_THEME"'"/' "$VSCODIUM_SETTINGS"
+        fi
+    fi
+
+    # --- Obsidian ---
+    OBSIDIAN_CONFIG="$HOME/Obsidian/C++/.obsidian/appearance.json"
+    if [ -f "$OBSIDIAN_CONFIG" ]; then
+        if [ "$THEME" = "gruvbox" ]; then
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Obsidian gruvbox"/' "$OBSIDIAN_CONFIG"
+        elif [ "$THEME" = "everforest" ]; then
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Everforest"/' "$OBSIDIAN_CONFIG"
+        elif [ "$THEME" = "catppuccin" ]; then
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Catppuccin"/' "$OBSIDIAN_CONFIG"
+        elif [ "$THEME" = "nordic" ]; then
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Obsidian Nord"/' "$OBSIDIAN_CONFIG"
+        elif [ "$THEME" = "rose-pine" ]; then
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Rose Pine"/' "$OBSIDIAN_CONFIG"
+        else
+            sed -i 's/"cssTheme": ".*"/"cssTheme": "Tokyo Night"/' "$OBSIDIAN_CONFIG"
+        fi
+    fi
+
+    # --- Browser & Terminal Colors (Pywal) ---
+    if [ "$THEME" = "gruvbox" ]; then
+        wal --theme gruvbox 2>/dev/null || wal --theme gruvbox-dark || wal --theme gruvbox-hard
+    elif [ "$THEME" = "everforest" ]; then
+        wal -f ~/.config/wal/colorschemes/everforest.json 2>/dev/null || wal --theme base16-atlier-everforest
+    elif [ "$THEME" = "catppuccin" ]; then
+        wal -f ~/.config/wal/colorschemes/catppuccin-mocha.json 2>/dev/null || wal --theme base16-mocha
+    elif [ "$THEME" = "nordic" ]; then
+        wal -f ~/.config/wal/colorschemes/nordic-dark.json 2>/dev/null || wal --theme nord 2>/dev/null || wal --theme base16-nord
+    elif [ "$THEME" = "rose-pine" ]; then
+        wal -f ~/.config/wal/colorschemes/rose-pine.json 2>/dev/null || wal --theme rose-pine 2>/dev/null || true
+    else
+        wal --theme tokyonight 2>/dev/null || wal --theme tokyo-night
+    fi
+
+    # Apply pywal sequences to all open terminals instantly
+    if [ -f ~/.cache/wal/sequences ]; then
+        for tty in /dev/pts/*; do
+            [ -w "$tty" ] && cat ~/.cache/wal/sequences > "$tty" 2>/dev/null || true
+        done
+    fi
+
+    pywalfox update
+
+    # Save state
+    echo "$THEME" > "$CURRENT_THEME_FILE"
+    notify-send "Theme Switcher" "Switched to $THEME ✓"
+) &
+
+exit 0

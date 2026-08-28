@@ -1,0 +1,230 @@
+/* WAYBAR - TOKYO NIGHT GLASS THEME */
+
+* {
+  font-family: "Iosevka Nerd Font", "Iosevka Nerd Font Mono", monospace;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+}
+
+window#waybar {
+  background: transparent;
+  color: #c0caf5;
+}
+
+window#waybar > box {
+  background: rgba(26, 27, 38, 0.75);
+  border: 1px solid rgba(122, 162, 247, 0.18);
+  border-radius: 12px;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+  padding: 0 4px;
+}
+
+#custom-arch {
+  font-size: 18px;
+  color: #7aa2f7;
+  padding: 0 8px 0 12px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+#custom-arch:hover {
+  color: #7dcfff;
+  background: rgba(41, 46, 66, 0.85);
+}
+
+#custom-brain {
+  font-size: 16px;
+  color: #7aa2f7;
+  padding: 0 6px;
+  background: transparent;
+}
+
+#workspaces {
+  padding: 0 4px;
+  background: transparent;
+}
+
+#workspaces button {
+  padding: 2px 8px;
+  margin: 3px 2px;
+  border-radius: 6px;
+  color: #565f89;
+  background: transparent;
+  border: 1px solid transparent;
+  min-width: 28px;
+  transition: all 0.2s ease;
+}
+
+#workspaces button:hover {
+  color: #7aa2f7;
+  background: rgba(122, 162, 247, 0.1);
+  border-color: rgba(122, 162, 247, 0.45);
+}
+
+#workspaces button.active {
+  color: #1a1b26;
+  background: #7aa2f7;
+  border-color: #7aa2f7;
+}
+
+#workspaces button.urgent {
+  color: #1a1b26;
+  background: #f7768e;
+  border-color: #f7768e;
+}
+
+#custom-media {
+  color: #9ece6a;
+  background: rgba(158, 206, 106, 0.08);
+  border: 1px solid rgba(158, 206, 106, 0.15);
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+#clock {
+  color: #7dcfff;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(125, 207, 255, 0.06);
+  border: 1px solid rgba(125, 207, 255, 0.15);
+  border-radius: 8px;
+  padding: 2px 16px;
+}
+
+#clock:hover {
+  background: rgba(125, 207, 255, 0.12);
+  border-color: rgba(125, 207, 255, 0.35);
+}
+
+#custom-gpu {
+  color: #9ece6a;
+  background: rgba(158, 206, 106, 0.06);
+  border: 1px solid rgba(158, 206, 106, 0.12);
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#cpu {
+  color: #7aa2f7;
+  background: rgba(122, 162, 247, 0.06);
+  border: 1px solid rgba(122, 162, 247, 0.12);
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#memory {
+  color: #bb9af7;
+  background: rgba(187, 154, 247, 0.06);
+  border: 1px solid rgba(187, 154, 247, 0.12);
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#temperature {
+  color: #ff9e64;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#temperature.critical {
+  color: #f7768e;
+  background: rgba(247, 118, 142, 0.12);
+  border: 1px solid rgba(247, 118, 142, 0.3);
+}
+
+#bluetooth {
+  color: #7dcfff;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#bluetooth.connected {
+  color: #7aa2f7;
+  background: rgba(122, 162, 247, 0.08);
+}
+
+#network {
+  color: #2ac3de;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#network.disconnected {
+  color: #f7768e;
+}
+
+#pulseaudio {
+  color: #e0af68;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#pulseaudio.muted {
+  color: #565f89;
+}
+
+#battery {
+  color: #9ece6a;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#battery.warning {
+  color: #e0af68;
+}
+
+#battery.critical {
+  color: #f7768e;
+}
+
+#battery.charging {
+  color: #9ece6a;
+  background: rgba(158, 206, 106, 0.08);
+}
+
+#custom-notification {
+  color: #bb9af7;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 2px 10px;
+}
+
+#custom-notification:hover {
+  color: #7aa2f7;
+  background: rgba(187, 154, 247, 0.1);
+}
+
+#custom-power {
+  color: #f7768e;
+  font-size: 15px;
+  padding: 2px 12px 2px 8px;
+  border-radius: 8px;
+  background: rgba(247, 118, 142, 0.06);
+  border: 1px solid rgba(247, 118, 142, 0.15);
+}
+
+#custom-power:hover {
+  background: rgba(247, 118, 142, 0.18);
+  border-color: rgba(247, 118, 142, 0.45);
+}
+
+tooltip {
+  background: rgba(26, 27, 38, 0.95);
+  border: 1px solid rgba(122, 162, 247, 0.45);
+  border-radius: 8px;
+  color: #c0caf5;
+  font-family: "Iosevka Nerd Font", monospace;
+  font-size: 12px;
+}
+
+tooltip label {
+  color: #c0caf5;
+}

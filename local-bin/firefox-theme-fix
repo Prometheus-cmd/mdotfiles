@@ -1,0 +1,4 @@
+#!/bin/bash
+sleep 5
+PROFILE="$HOME/.config/mozilla/firefox/js7ingvv.default-release"
+[ -f "$PROFILE/extensions.json" ] && touch "$PROFILE/extensions.json"

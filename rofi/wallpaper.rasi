@@ -1,0 +1,72 @@
+* {
+  bg:         rgba(26, 27, 38, 0.95);
+  bg-alt:     rgba(41, 46, 66, 0.85);
+  fg:         #c0caf5;
+  accent:     #7aa2f7;
+  border-col: rgba(122, 162, 247, 0.3);
+  font:       "Iosevka Nerd Font 12";
+}
+window {
+  background-color: @bg;
+  border:           2px;
+  border-color:     @border-col;
+  border-radius:    12px;
+  width:            900px;
+  height:           620px;
+}
+mainbox {
+  background-color: transparent;
+  children:         [inputbar, listview];
+  spacing:          8px;
+  padding:          12px;
+}
+inputbar {
+  background-color: @bg-alt;
+  border-radius:    8px;
+  padding:          8px 12px;
+  border:           1px;
+  border-color:     @border-col;
+  children:         [prompt, entry];
+}
+prompt {
+  background-color: transparent;
+  text-color:       @accent;
+  padding:          0 6px 0 0;
+}
+entry {
+  background-color:  transparent;
+  text-color:        @fg;
+  placeholder:       "Search wallpapers...";
+  placeholder-color: rgba(192, 202, 245, 0.3);
+}
+listview {
+  background-color: transparent;
+  columns:          4;
+  lines:            2;
+  spacing:          8px;
+  cycle:            true;
+}
+element {
+  background-color: transparent;
+  border-radius:    8px;
+  padding:          6px;
+  border:           1px;
+  border-color:     transparent;
+  orientation:      vertical;
+  cursor:           pointer;
+}
+element selected {
+  background-color: rgba(122, 162, 247, 0.15);
+  border-color:     @accent;
+}
+element-icon {
+  size:          200px;
+  border-radius: 6px;
+}
+element-text {
+  background-color: transparent;
+  text-color:       @fg;
+  font:             "Iosevka Nerd Font 10";
+  padding:          4px 2px 0 2px;
+  horizontal-align: 0.5;
+}

@@ -1,0 +1,77 @@
+#!/bin/bash
+
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+THEME_DIR="$HOME/.config/DankMaterialShell/themes"
+SETTINGS="$HOME/.config/DankMaterialShell/settings.json"
+SESSION="$HOME/.local/state/DankMaterialShell/session.json"
+
+declare -A FOLDERS=(
+    [catppuccin]="Catppuccin"
+    [everforest]="Everforest"
+    [gruvbox]="Gruvbox"
+    [nordic]="Nordic"
+    [rosepine]="Rose-Pine"
+    [tokyonight]="Tokyo-Night"
+)
+
+declare -A THEMES=(
+    [catppuccin]="$THEME_DIR/catppuccin/theme.json"
+    [everforest]="$THEME_DIR/everforest/theme.json"
+    [gruvbox]="$THEME_DIR/gruvboxMaterial/theme.json"
+    [nordic]="$THEME_DIR/nord/theme.json"
+    [rosepine]="$THEME_DIR/rosePine/theme.json"
+    [tokyonight]="$THEME_DIR/tokyoNight/theme.json"
+)
+
+CHOICE="$1"
+
+if [[ -z "$CHOICE" || -z "${FOLDERS[$CHOICE]}" ]]; then
+    echo "Usage: wp <theme>"
+    echo "Available: ${!FOLDERS[@]}"
+    exit 1
+fi
+
+FOLDER="$WALLPAPER_DIR/${FOLDERS[$CHOICE]}"
+WALLPAPER=$(find "$FOLDER" -type f | shuf -n 1)
+
+if [[ -z "$WALLPAPER" ]]; then
+    echo "No wallpapers found in $FOLDER"
+    exit 1
+fi
+
+echo "Switching to $CHOICE — $(basename "$WALLPAPER")"
+
+# Update settings.json with new theme
+python3 -c "
+import json
+with open('$SETTINGS', 'r') as f:
+    s = json.load(f)
+s['currentThemeName'] = 'custom'
+s['currentThemeCategory'] = 'custom'
+s['customThemeFile'] = '${THEMES[$CHOICE]}'
+s['syncModeWithPortal'] = False
+with open('$SETTINGS', 'w') as f:
+    json.dump(s, f, indent=2)
+
+with open('$SESSION', 'r') as f:
+    sess = json.load(f)
+sess['wallpaperPath'] = '$WALLPAPER'
+sess['isLightMode'] = False
+sess['themeModeAutoEnabled'] = False
+with open('$SESSION', 'w') as f:
+    json.dump(sess, f, indent=2)
+"
+
+# Apply live via IPC — no restart, uses iris bloom transition
+dms ipc call settings set currentThemeName "custom"
+dms ipc call settings set currentThemeCategory "custom"
+dms ipc call settings set customThemeFile "${THEMES[$CHOICE]}"
+dms ipc call theme dark
+dms ipc call wallpaper set "$WALLPAPER"
+
+dms ipc call toast info "Switched to $CHOICE!"
+
+# Reload all kitty instances
+kitty @ --to unix:/tmp/mykitty set-colors --all --configured /home/s1/.config/kitty/dank-theme.conf 2>/dev/null
+
+echo "Done!"

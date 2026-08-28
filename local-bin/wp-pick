@@ -1,0 +1,11 @@
+#!/bin/bash
+
+WP="/home/s1/.local/bin/wp"
+
+CHOICE=$(printf 'catppuccin\neverforest\ngruvbox\nnordic\nrosepine\ntokyonight' | \
+    rofi -dmenu \
+         -p "Theme" \
+         -no-show-icons \
+         -theme /home/s1/.config/rofi/wp-theme.rasi)
+
+[[ -n "$CHOICE" ]] && "$WP" "$CHOICE"

@@ -1,0 +1,14 @@
+arcticicestudio.nord-visual-studio-code
+catppuccin.catppuccin-vsc
+codium.codium
+enkia.tokyo-night
+jdinhlife.gruvbox
+llvm-vs-code-extensions.vscode-clangd
+ms-python.debugpy
+ms-python.python
+ms-python.vscode-python-envs
+mvllow.rose-pine
+rej.purplevoid
+sainnhe.everforest
+sdras.night-owl
+venage5603.tokyo-night-dark-enhanced

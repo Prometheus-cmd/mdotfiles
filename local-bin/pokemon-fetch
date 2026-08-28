@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────────────
+#  Pokemon + Sysinfo side by side
+# ─────────────────────────────────────────────────────────────
+
+# Get pokemon output into temp file
+POKEMON=$(pokemon-colorscripts --random --no-title 2>/dev/null)
+
+# Sysinfo
+OS=$(cat /etc/os-release | grep "^PRETTY_NAME" | cut -d'"' -f2)
+KERNEL=$(uname -r)
+PKGS=$(pacman -Q | wc -l)
+SHELL=$(basename "$SHELL")
+RAM=$(free -m | awk '/Mem:/ {printf "%s MB", $3}')
+WM="Hyprland"
+INIT="systemd"
+DISK=$(df -h / | awk 'NR==2 {print $3 " Used"}')
+UPTIME=$(uptime -p | sed 's/up //')
+
+# Colors
+BLUE='\033[38;5;111m'
+RESET='\033[0m'
+BOLD='\033[1m'
+DIM='\033[2m'
+
+# Build sysinfo lines
+INFO=(
+  ""
+  "${BLUE}os${RESET}      $OS"
+  "${BLUE}ker${RESET}     $KERNEL"
+  "${BLUE}pkgs${RESET}    $PKGS"
+  "${BLUE}sh${RESET}      $SHELL"
+  "${BLUE}ram${RESET}     $RAM"
+  "${BLUE}de/wm${RESET}   $WM"
+  "${BLUE}init${RESET}    $INIT"
+  "${BLUE}disk${RESET}    $DISK"
+  "${BLUE}up${RESET}      $UPTIME"
+  ""
+)
+
+# Combine side by side
+POKEMON_LINES=()
+while IFS= read -r line; do
+  POKEMON_LINES+=("$line")
+done <<< "$POKEMON"
+
+MAX_LINES=${#POKEMON_LINES[@]}
+if [ ${#INFO[@]} -gt $MAX_LINES ]; then
+  MAX_LINES=${#INFO[@]}
+fi
+
+for ((i=0; i<MAX_LINES; i++)); do
+  PLINE="${POKEMON_LINES[$i]:-}"
+  ILINE="${INFO[$i]:-}"
+  # Pad pokemon line to fixed width
+  CLEAN=$(echo -e "$PLINE" | sed 's/\x1b\[[0-9;]*m//g')
+  PAD=$((22 - ${#CLEAN}))
+  PADDING=$(printf '%*s' "$PAD" '')
+  printf '%b%s   %b\n' "$PLINE" "$PADDING" "$ILINE"
+done
+
+echo ""

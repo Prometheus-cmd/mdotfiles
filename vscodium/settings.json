@@ -1,0 +1,8 @@
+{
+    "workbench.colorTheme": "Tokyo Night",
+    "mcpServers": {},
+    "workbench.editorAssociations": {
+        "*.cpp": "default"
+    },
+    "clangd.path": "/home/s1/.config/VSCodium/User/globalStorage/llvm-vs-code-extensions.vscode-clangd/install/22.1.6/clangd_22.1.6/bin/clangd"
+}

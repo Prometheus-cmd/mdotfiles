@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+THEMES_DIR="$HOME/.config/themes"
+CURRENT_THEME_FILE="$HOME/.config/current-theme"
+
+# Get current theme
+CURRENT=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "tokyo-night")
+
+# Show picker and get choice
+CHOICE=$(echo -e "Tokyo Night\nGruvbox\nEverforest" | \
+    rofi -dmenu -i -p "󰉼  Select Theme" -theme ~/.config/rofi/theme-selector.rasi -no-custom)
+
+# Exit if nothing selected
+[ -z "$CHOICE" ] && exit 0
+
+# Determine selected theme
+case "$CHOICE" in
+    *"Tokyo Night"*) THEME="tokyo-night" ;;
+    *"Gruvbox"*) THEME="gruvbox" ;;
+    *"Everforest"*) THEME="everforest" ;;
+    *) exit 1 ;;
+esac
+
+# Already on this theme
+#[ "$THEME" = "$CURRENT" ] && exit 0
+
+# Start switching in background immediately
+(
+   "$THEME" = "$CURRENT" ] && exit 0
+    
+    # Log for debugging
+    exec &> /tmp/theme-switcher.log
+    
+    echo "=== SWITCHING TO $THEME ==="
+    date
+
+    # Change wallpaper FIRST (in background)
+    WALLPAPER_PATH=$(eval echo "$(cat "$THEMES_DIR/$THEME/wallpaper-path.txt" 2>/dev/null)")
+    echo "Wallpaper path: $WALLPAPER_PATH"
+    if [ -d "$WALLPAPER_PATH" ]; then
+        WALL=$(find "$WALLPAPER_PATH" -type f \( -iname "*.jpg" -o -iname "*.png" \) 2>/dev/null | shuf -n 1)
+        echo "Selected wallpaper: $WALL"
+        [ -n "$WALL" ] && {
+            swww img "$WALL" --transition-type fade --transition-duration 1.2 &
+            echo "$WALL" > "$HOME/.cache/current_wallpaper"
+        }
+    fi
+
+    # Waybar - CHECK FILES EXIST FIRST
+    echo "=== WAYBAR ==="
+    ls -la "$THEMES_DIR/$THEME/waybar-config" || echo "waybar-config MISSING"
+    ls -la "$THEMES_DIR/$THEME/waybar-style.css" || echo "waybar-style.css MISSING"
+    
+    cp "$THEMES_DIR/$THEME/waybar-config" "$HOME/.config/waybar/config"
+    cp "$THEMES_DIR/$THEME/waybar-style.css" "$HOME/.config/waybar/style.css"
+    cp "$THEMES_DIR/$THEME/mediaplayer.py" "$HOME/.config/waybar/scripts/mediaplayer.py"
+    chmod +x "$HOME/.config/waybar/scripts/mediaplayer.py"
+    killall waybar 2>/dev/null; sleep 0.5; waybar &
+    echo "Waybar restarted"
+
+    # Hyprland
+    echo "=== HYPR ==="
+    cp "$THEMES_DIR/$THEME/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
+    hyprctl reload
+    echo "Hyprland reloaded"
+
+    # Alacritty - VERBOSE CHECK
+    echo "=== ALACRITTY ==="
+    if [ -f "$THEMES_DIR/$THEME/alacritty.toml" ]; then
+        echo "Found alacritty.toml, copying..."
+        cp "$THEMES_DIR/$THEME/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
+        ls -la "$HOME/.config/alacritty/alacritty.toml"
+        echo "Copy successful"
+    else
+        echo "ERROR: $THEMES_DIR/$THEME/alacritty.toml NOT FOUND"
+        ls -la "$THEMES_DIR/$THEME/"
+    fi
+
+    # Starship
+    echo "=== STARSHIP ==="
+    [ -f "$THEMES_DIR/$THEME/starship.toml" ] && \
+        cp "$THEMES_DIR/$THEME/starship.toml" "$HOME/.config/starship.toml"
+
+    # Wlogout - FIXED FOR ALL THEMES
+    echo "=== WLOGOUT ==="
+    if [ "$THEME" = "gruvbox" ]; then
+        [ -f "$THEMES_DIR/gruvbox/wlogout-gruvbox-style.css" ] && \
+            cp "$THEMES_DIR/gruvbox/wlogout-gruvbox-style.css" "$HOME/.config/wlogout/style.css"
+    elif [ "$THEME" = "everforest" ]; then
+        [ -f "$THEMES_DIR/everforest/wlogout-style.css" ] && \
+            cp "$THEMES_DIR/everforest/wlogout-style.css" "$HOME/.config/wlogout/style.css"
+    else
+        [ -f "$THEMES_DIR/tokyo-night/wlogout-style.css" ] && \
+            cp "$THEMES_DIR/tokyo-night/wlogout-style.css" "$HOME/.config/wlogout/style.css"
+    fi
+    
+    # Wlogout layout for ALL themes
+    [ -f "$THEMES_DIR/$THEME/wlogout-layout" ] && \
+        cp "$THEMES_DIR/$THEME/wlogout-layout" "$HOME/.config/wlogout/layout"
+
+    # Rofi launcher colors - USE SYMLINK METHOD (more reliable)
+    echo "=== ROFI ==="
+    ROFI_COLORS_DIR="$HOME/.config/rofi/colors"
+    if [ -f "$ROFI_COLORS_DIR/$THEME.rasi" ] || [ -f "$ROFI_COLORS_DIR/everforest.rasi" ]; then
+        # Create generic current.rasi that imports theme
+        cat > "$ROFI_COLORS_DIR/current.rasi" << EOF
+@import "$ROFI_COLORS_DIR/$THEME.rasi"
+EOF
+        echo "Rofi colors set to $THEME"
+    else
+        echo "WARNING: Rofi color file not found for $THEME"
+    fi
+
+    # VSCodium theme
+    echo "=== VSCODIUM ==="
+    if command -v codium &> /dev/null; then
+        VSCODIUM_SETTINGS="$HOME/.config/VSCodium/User/settings.json"
+        if [ -f "$VSCODIUM_SETTINGS" ]; then
+            if [ "$THEME" = "gruvbox" ]; then
+                sed -i 's/"workbench.colorTheme": ".*"/"workbench.colorTheme": "Gruvbox Dark Hard"/' "$VSCODIUM_SETTINGS"
+            elif [ "$THEME" = "everforest" ]; then
+                sed -i 's/"workbench.colorTheme": ".*"/"workbench.colorTheme": "Everforest Dark"/' "$VSCODIUM_SETTINGS"
+            else
+                sed -i 's/"workbench.colorTheme": ".*"/"workbench.colorTheme": "Tokyo Night"/' "$VSCODIUM_SETTINGS"
+            fi
+        fi
+    fi
+
+    # Firefox theme
+    echo "=== FIREFOX ==="
+    if [ "$THEME" = "gruvbox" ]; then
+        wal --theme gruvbox
+    elif [ "$THEME" = "everforest" ]; then
+        wal --theme base16-atlier-everforest
+    else
+        wal --theme tokyonight
+    fi
+    pywalfox update
+
+    # Save current theme
+    echo "$THEME" > "$CURRENT_THEME_FILE"
+    echo "=== DONE ==="
+
+    notify-send "Theme Switcher" "Switched to $THEME ✓" -i preferences-desktop-theme
+) &
+
+# Exit immediately so rofi closes
+exit 0

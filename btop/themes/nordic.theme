@@ -1,0 +1,33 @@
+# Main background
+theme[main_bg]="#242933"
+
+# Main text color
+theme[main_fg]="#d8dee9"
+
+# Title color
+theme[title]="#88c0d0"
+
+# Highlight color
+theme[hi_fg]="#5e81ac"
+
+# Selected item
+theme[selected_bg]="#2e3440"
+theme[selected_fg]="#88c0d0"
+
+# Inactive/disabled
+theme[inactive_fg]="#4c566a"
+
+# Graph colors
+theme[graph_text]="#81a1c1"
+theme[graph_bg]="#2e3440"
+
+# Meter colors
+theme[meter_bg]="#3b4252"
+
+# Process colors
+theme[proc_misc]="#88c0d0"
+
+# Gradient colors for CPU/Memory
+theme[start_color]="#5e81ac"
+theme[mid_color]="#88c0d0"
+theme[end_color]="#bf616a"
